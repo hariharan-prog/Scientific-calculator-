@@ -77,6 +77,7 @@ Challenge: Ensuring stack operations and expression handling were efficient and 
 Solution: Utilized Java collections and structured control flow to manage the evaluation process.
 
 Conclusion
+
 My internship at ShadowFox provided valuable hands-on experience in the field of web
 development. The exposure to various aspects of frontend and backend development, along
 with real-world problem-solving, has significantly enhanced my skills and knowledge. This
@@ -84,6 +85,7 @@ experience has strengthened my interest in pursuing a career in web development 
 prepared me for the challenges and opportunities in the field.
 
 Acknowledgments
+
 I express my sincere gratitude to ShadowFox, especially my coordinator, Mr. Aakash S, for his
 guidance and support throughout my internship. I also thank Amrita Vishwa Vidyapeetham for
 providing this internship opportunity, which has been instrumental in my personal and
