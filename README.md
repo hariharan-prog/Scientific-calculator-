@@ -1,4 +1,6 @@
 # Scientific-calculator-
+The program is in the gitignore
+
 Project Report
 
 
