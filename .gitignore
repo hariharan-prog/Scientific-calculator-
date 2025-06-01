@@ -1,24 +1,184 @@
-# Compiled class file
-*.class
+import java.util.Scanner;
+import java.util.Stack;
 
-# Log file
-*.log
+public class ScientificCalculator {
 
-# BlueJ files
-*.ctxt
+    static int precedence(char op) {
+        switch (op) {
+            case '+':
+            case '-': return 1;
+            case '*':
+            case '/': return 2;
+            default: return 0;
+        }
+    }
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
+    static double applyOp(double a, double b, char op) {
+        switch (op) {
+            case '+': return a + b;
+            case '-': return a - b;
+            case '*': return a * b;
+            case '/':
+                if (b == 0) {
+                    throw new ArithmeticException("Division by zero");
+                }
+                return a / b;
+            default: return 0;
+        }
+    }
 
-# Package Files #
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
+    static double evaluateTop(Stack<Double> nums, Stack<Character> ops) {
+        double b = nums.pop();
+        double a = nums.pop();
+        char op = ops.pop();
+        return applyOp(a, b, op);
+    }
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-replay_pid*
+    static double parseFunction(String func, String argExpr) {
+        double argVal = evaluateExpression(argExpr);
+        switch (func) {
+            case "sin": return Math.sin(argVal);
+            case "cos": return Math.cos(argVal);
+            case "tan": return Math.tan(argVal);
+            case "sqrt": return Math.sqrt(argVal);
+            case "log": return Math.log(argVal);
+            case "exp": return Math.exp(argVal);
+            default:
+                throw new IllegalArgumentException("Unknown function: " + func);
+        }
+    }
+
+    public static double evaluateExpression(String expr) {
+        Stack<Double> nums = new Stack<>();
+        Stack<Character> ops = new Stack<>();
+        int i = 0;
+
+        while (i < expr.length()) {
+            char ch = expr.charAt(i);
+
+            if (Character.isWhitespace(ch)) {
+                i++;
+                continue;
+            }
+
+            if (ch == '(') {
+                ops.push(ch);
+                i++;
+            }
+            else if (Character.isLetter(ch)) {
+                StringBuilder func = new StringBuilder();
+                while (i < expr.length() && Character.isLetter(expr.charAt(i))) {
+                    func.append(expr.charAt(i++));
+                }
+
+                if (i >= expr.length() || expr.charAt(i) != '(') {
+                    throw new IllegalArgumentException("Expected '(' after function name");
+                }
+
+                int start = ++i, parens = 1;
+                while (i < expr.length() && parens > 0) {
+                    if (expr.charAt(i) == '(') parens++;
+                    else if (expr.charAt(i) == ')') parens--;
+                    i++;
+                }
+
+                if (parens != 0) {
+                    throw new IllegalArgumentException("Mismatched parentheses in function");
+                }
+
+                String argExpr = expr.substring(start, i - 1);
+                double result = parseFunction(func.toString(), argExpr);
+                nums.push(result);
+            }
+            else if (Character.isDigit(ch) || (ch == '-' && i + 1 < expr.length() && Character.isDigit(expr.charAt(i + 1)))) {
+                int sign = 1;
+                if (ch == '-') {
+                    sign = -1;
+                    i++;
+                }
+                double val = 0;
+                while (i < expr.length() && Character.isDigit(expr.charAt(i))) {
+                    val = val * 10 + (expr.charAt(i++) - '0');
+                }
+                if (i < expr.length() && expr.charAt(i) == '.') {
+                    i++;
+                    double frac = 0, base = 0.1;
+                    while (i < expr.length() && Character.isDigit(expr.charAt(i))) {
+                        frac += (expr.charAt(i++) - '0') * base;
+                        base /= 10;
+                    }
+                    val += frac;
+                }
+                nums.push(sign * val);
+            }
+            else if (ch == ')') {
+                while (!ops.isEmpty() && ops.peek() != '(') {
+                    nums.push(evaluateTop(nums, ops));
+                }
+                if (ops.isEmpty()) {
+                    throw new IllegalArgumentException("Mismatched parentheses");
+                }
+                ops.pop(); // remove '('
+                i++;
+            }
+            else if ("+-*/".indexOf(ch) != -1) {
+                while (!ops.isEmpty() && precedence(ops.peek()) >= precedence(ch)) {
+                    nums.push(evaluateTop(nums, ops));
+                }
+                ops.push(ch);
+                i++;
+            }
+            else {
+                throw new IllegalArgumentException("Invalid character: " + ch);
+            }
+        }
+
+        while (!ops.isEmpty()) {
+            nums.push(evaluateTop(nums, ops));
+        }
+
+        return nums.pop();
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("============================================");
+        System.out.println("         Welcome to the Calculator!");
+        System.out.println("============================================\n");
+        System.out.println("     _________________________");
+        System.out.println("    |       0.0               |");
+        System.out.println("    |_________________________|");
+        System.out.println("    | sin cos tan sqrt exp    |");
+        System.out.println("    |  7   8   9   +   -      |");
+        System.out.println("    |  4   5   6   *   /      |");
+        System.out.println("    |  1   2   3   ^   =      |");
+        System.out.println("    |      0   .  +/-  ( )    |");
+        System.out.println("    |_________________________|\n");
+
+        System.out.println("Enter a full expression:");
+        System.out.println("Operators: +  -  *  /  ( )");
+        System.out.println("Functions: sin(x), cos(x), tan(x), sqrt(x), log(x), exp(x)");
+        System.out.println("Note: Angles for sin/cos/tan must be in radians.\n");
+
+        System.out.print("Expression: ");
+        String input = scanner.nextLine();
+
+        try {
+            double result = evaluateExpression(input);
+            System.out.println("\n--------------------------------------------\n");
+            System.out.printf("     _________________________\n");
+            System.out.printf("    |     %8.4f            |\n", result);
+            System.out.println("    |_________________________|");
+            System.out.println("    | sin cos tan sqrt exp    |");
+            System.out.println("    |  7   8   9   +   -      |");
+            System.out.println("    |  4   5   6   *   /      |");
+            System.out.println("    |  1   2   3   ^   =      |");
+            System.out.println("    |      0   .  +/-  ( )    |");
+            System.out.println("    |_________________________|");
+            System.out.println("--------------------------------------------");
+            System.out.println("Thank you for using the calculator!");
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+}
